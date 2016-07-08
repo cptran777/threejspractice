@@ -22,7 +22,6 @@ var getFrequencies = function() {
 	analyzer.getByteFrequencyData(frequencyData);
 	var frequency = frequencyData;
 	if (interval++ > 30) {
-		console.log(frequency.slice(0, 5));
 		interval = 0;
 	}
 }
@@ -31,6 +30,7 @@ var getFrequencies = function() {
 var scene = new THREE.Scene();
 
 var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.z = 500;
 
 var renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -39,35 +39,7 @@ document.body.appendChild(renderer.domElement);
 
 /*************************** CREATE OBJECTS ****************************/
 
-// BoxGeometry is an object that contains all the points (vertices) and
-// fill (faces) of a cube. 
-var geometry = new THREE.BoxGeometry(100, 100, 100);
-
-// Material to color the cube. Three.js comes with several kinds of materials.
-var material = new THREE.MeshBasicMaterial({color: 0x009bff, wireframe: true}); // Note: green, hex
-
-// Mesh is an object that takes a geometry and applies a material to it. 
-// var cube = new THREE.Mesh(geometry, material);
-
-// By default, scene.add() adds an object to coordinates (0,0,0)
-// scene.add(cube);
-
-// As that would cause the camera to be inside the cube, moving the camera
-// away a bit:
-camera.position.z = 500;
-
-/********************* CUBE RESIZE *************************/
-
-// Scale is an actual % scale as opposed to setting an actual dimension.
-// cube.scale.y = 0.5;
-
-/****************** CREATE MORE CUBES **********************/
-
-var cubeNation = [];
-for (var x = 0; x < 4; x++) {
-	cubeNation.push(new THREE.BoxGeometry(50, 50, 50));
-}
-
+var geometry = new THREE.BoxGeometry(25, 25, 25);
 var materialsList = [];
 var colorsList = [0x009bff, 0xf9a114, 0xfff200, 0x66fc26, 0xf50057, 0x51458d];
 
@@ -75,31 +47,66 @@ for (var y = 0; y < 6; y++) {
 	materialsList.push(new THREE.MeshBasicMaterial({color: colorsList[y]}));
 }
 
-var colorCount = 0;
-
-var meshedCubes = cubeNation.map(function meshAll(item) {
-	if(colorCount > 5) {
-		colorCount = 0;
+// Creates arrays of meshes. These arrays will be able to handle a stack
+// growing larger or smaller later on. 
+var createObjects = function(numGroups, geo, materials) {
+	var results = [];
+	var colorCount = 0;
+	for (var x = 0; x < numGroups; x++) {
+		if (colorCount > 5) {
+			colorCount = 0;
+		}
+		results.push([new THREE.Mesh(geo, materials[colorCount++])]);
 	}
-	return [new THREE.Mesh(item, materialsList[colorCount++])];
-});
+	return results;
+};
 
-var objPositions = {
-	x: -500,
-	y: -200,
-	z: 0
+meshedCubes = createObjects(10, geometry, materialsList);
+console.log(meshedCubes[0][0].material.color);
+meshedCubes[0].push(new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({color: meshedCubes[0][0].material.color})));
+
+/************************ ADD OBJECTS TO SCENE **************************/
+
+var addObjsToScene = function(objArray, options) {
+	var objPositions = options.objPositions || {x: 0, y: 0, z: 0};
+	var increment = options.increment || {x: 0, y: 0, z: 0};
+
+	objArray.forEach(function(obj, idx) {
+		scene.add(obj);
+		obj.position.set(objPositions.x, objPositions.y, objPositions.z);
+		objPositions.x += increment.x;
+		objPositions.y += increment.y;
+		objPositions.z += increment.z;
+	});
+};
+
+var addSetsToScene = function(setsArray, options) {
+	var setsPositions = options.setsPositions || {x: 0, y: 0, z: 0};
+	var incrementSet = options.increment || {x: 0, y: 0, z: 0};
+	var incrementObj = options.incrementObj || {x: 0, y: 0, z: 0};
+
+	setsArray.forEach(function(set) {
+		addObjsToScene(set, {objPositions: setsPositions, increment: incrementObj});
+		setsPositions.x += incrementSet.x;
+		setsPositions.y += incrementSet.y;
+		setsPositions.z += incrementSet.z;		
+	});
 }
 
-meshedCubes[1].push(new THREE.Mesh(new THREE.BoxGeometry(50, 50, 50), materialsList[1]));
+addSetsToScene(meshedCubes, {setsPositions: {x:-500, y:-200, z:0}, increment: {x: 60, y: 0, z: 0}, incrementObj: {x: 0, y: 0, z: 0}});
 
-meshedCubes.forEach(function addToScene(cubic) {
-	cubic.forEach(function setCubic(cube) {
-		scene.add(cube);
-		cube.position.set(objPositions.x, objPositions.y, objPositions.z);
+/************************ MODIFY OBJECT SETS TO DATA *********************/
+
+var modifySets = function(data, sets, options) {
+	var modifier = options.modifier || 0;
+	var geosize = options.geosize || 0;
+	data.forEach(function(item) {
+		if (item + modifier > sets.length * geosize) {
+
+		}
 	});
-	objPositions.x += 60;
-	// objPositions.y += 100;
-});
+}
+
 
 /********************* ADD LIGHT ****************************/
 
@@ -128,17 +135,20 @@ function onDocumentMouseMove(event) {
 // Note: requestAnimationFrame has some advantages over simple setInterval: 
 // Pauses when the user navigates to another browser tab, so doesn't waste
 // processing power. 
+var myInterval = 0;
 function render() {
 	requestAnimationFrame(render);
 	// Addition of function that rotates the cube. 
 	// cubeRotationFunc();
+	myInterval++;
 
-	camera.position.x += ( mouseX - camera.position.x ) * .05;
-	camera.position.y += ( - mouseY - camera.position.y ) * .05;
+	// camera.position.x += ( mouseX - camera.position.x ) * .05;
+	// camera.position.y += ( - mouseY - camera.position.y ) * .05;
 	camera.lookAt( scene.position );
 	getFrequencies();
 	// cubeTranslation();
 	cubeResize(meshedCubes);
+	additionCubes();
 	// var myCube = meshedCubes[0];
 	// console.log(myCube.position.x);
 	// myCube.position.set(myCube.position.x + 0.02, myCube.position.y + 0.01, 0);
@@ -147,6 +157,18 @@ function render() {
 render();
 
 /******************* ANIMATE THE CUBE ***********************/
+
+function additionCubes() {
+	if (myInterval % 240 === 0) {
+		meshedCubes[0].push(new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({color: meshedCubes[0][0].material.color})));
+		meshedCubes[0][meshedCubes[0].length - 1].position.set(
+			meshedCubes[0][meshedCubes[0].length - 2].position.x,
+			meshedCubes[0][meshedCubes[0].length - 2].position.y,
+			meshedCubes[0][meshedCubes[0].length - 2].position.z
+		);
+		scene.add(meshedCubes[0][meshedCubes[0].length - 1]);
+	}
+}
 
 // This will run on every frame (at 60fps). Anything that moves
 // or changes will be run through the render loop. 
@@ -179,8 +201,8 @@ function cubeResize(cubes) {
 			y: topCube.position.y,
 			z: topCube.position.z
 		};
-		var targetHeight = cubeset.length * 50 - 200;
-		var move = topCubePos.y + 50 < targetHeight ? 1 : 0;
+		var targetHeight = cubeset.length * 25 - 200;
+		var move = topCubePos.y + 25 < targetHeight ? 1 : 0;
 		topCube.position.set(topCubePos.x, topCubePos.y + move, topCubePos.z);
 
 	});
