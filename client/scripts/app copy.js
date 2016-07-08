@@ -30,10 +30,10 @@ document.body.appendChild(renderer.domElement);
 
 // BoxGeometry is an object that contains all the points (vertices) and
 // fill (faces) of a cube. 
-var geometry = new THREE.BoxGeometry(1, 1, 1);
+var geometry = new THREE.BoxGeometry(100, 100, 100);
 
 // Material to color the cube. Three.js comes with several kinds of materials.
-var material = new THREE.MeshBasicMaterial({color: 0x009bff}); // Note: green, hex
+var material = new THREE.MeshBasicMaterial({color: 0x009bff, wireframe: true}); // Note: green, hex
 
 // Mesh is an object that takes a geometry and applies a material to it. 
 // var cube = new THREE.Mesh(geometry, material);
@@ -45,11 +45,17 @@ var material = new THREE.MeshBasicMaterial({color: 0x009bff}); // Note: green, h
 // away a bit:
 camera.position.z = 500;
 
+/********************* CUBE RESIZE *************************/
+
+// Scale is an actual % scale as opposed to setting an actual dimension.
+// cube.scale.y = 0.5;
+
 /****************** CREATE MORE CUBES **********************/
 
 var cubeNation = [];
 for (var x = 0; x < 500; x++) {
-	cubeNation.push(new THREE.BoxGeometry(30, 30, 30));
+	var cubeDimensions = Math.floor(Math.random() * 45 + 15);
+	cubeNation.push(new THREE.BoxGeometry(cubeDimensions, cubeDimensions, cubeDimensions));
 }
 
 var materialsList = [];
@@ -100,6 +106,8 @@ scene.add(pointLight);
 function onDocumentMouseMove(event) {
 	mouseX = (event.clientX - window.innerWidth / 2);
 	mouseY = (event.clientY - window.innerHeight / 2);
+	mousePosX = event.clientX;
+	mousePosY = event.clientY;
 }
 // Render loop:
 // Create a loop that causes the renderer to draw the scene 60 times
@@ -112,10 +120,11 @@ function render() {
 	// Addition of function that rotates the cube. 
 	cubeRotationFunc();
 
-	camera.position.x += ( mouseX - camera.position.x ) * .05;
-	camera.position.y += ( - mouseY - camera.position.y ) * .05;
+	// camera.position.x += ( mouseX - camera.position.x ) * .05;
+	// camera.position.y += ( - mouseY - camera.position.y ) * .05;
 	camera.lookAt( scene.position );
-	// cubeTranslation();
+	cubeTranslation();
+	// cubeResize();
 	// var myCube = meshedCubes[0];
 	// console.log(myCube.position.x);
 	// myCube.position.set(myCube.position.x + 0.02, myCube.position.y + 0.01, 0);
@@ -138,32 +147,19 @@ function cubeRotationFunc() {
 
 function cubeTranslation() {
 	meshedCubes.forEach(function rotations(item) {
-		item.position.set(item.position.x + 2, item.position.y + 1, 0);
 		var x = item.position.x;
+		x += x < mouseX ? 1 : -1;
 		var y = item.position.y;
+		y += y < mouseY ? 1 : -1;
 		var z = item.position.z;
-		// if (x > 800) {
-		// 	item.position.set(-700, -300, 0);
-		// }
-
-		var materialAndRender = function(matIndex) {
-			// item = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), materialsList[matIndex]);
-		};
-		if (x > 6) {
-			materialAndRender(0);
-		} else if (x > 4) {
-			materialAndRender(1);
-		} else if (x > 2) {
-			materialAndRender(2);
-		} else if (x > 0) {
-			materialAndRender(3);
-		} else if (x > -2) {
-			materialAndRender(4);
-		} else if (x > -4) {
-			materialAndRender(5);
-		}
+		z += z < 0 ? 1 : -0.5;
+		item.position.set(x, y, z);
 	});
 }
+
+// function cubeResize() {
+// 	cube.scale.y += 0.001;
+// }
 
 
 
