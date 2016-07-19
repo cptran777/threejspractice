@@ -122,6 +122,17 @@ pointLight.position.z = 1;
 // add to the scene
 scene.add(pointLight);
 
+/************************ DUMMY DATA ************************/
+var myDataArray = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+
+var incrementDummies = function() {
+	if (myInterval % 60 === 0) {
+		myDataArray.forEach(function(data, idx) {
+			myDataArray[idx] += Math.floor(Math.random() * 2);
+		});
+	}
+}
+
 /******************* RENDER THE SCENE ***********************/
 function onDocumentMouseMove(event) {
 	mouseX = (event.clientX - window.innerWidth / 2);
@@ -147,8 +158,10 @@ function render() {
 	camera.lookAt( scene.position );
 	getFrequencies();
 	// cubeTranslation();
+	incrementDummies();
+	dataTranslation(myDataArray, 60, meshedCubes);
 	cubeResize(meshedCubes);
-	additionCubes();
+	// additionCubes();
 	// var myCube = meshedCubes[0];
 	// console.log(myCube.position.x);
 	// myCube.position.set(myCube.position.x + 0.02, myCube.position.y + 0.01, 0);
@@ -158,17 +171,48 @@ render();
 
 /******************* ANIMATE THE CUBE ***********************/
 
-function additionCubes() {
-	if (myInterval % 240 === 0) {
-		meshedCubes[0].push(new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({color: meshedCubes[0][0].material.color})));
-		meshedCubes[0][meshedCubes[0].length - 1].position.set(
-			meshedCubes[0][meshedCubes[0].length - 2].position.x,
-			meshedCubes[0][meshedCubes[0].length - 2].position.y,
-			meshedCubes[0][meshedCubes[0].length - 2].position.z
-		);
-		scene.add(meshedCubes[0][meshedCubes[0].length - 1]);
+// dataArray expects an array of integers corresponding to the visualSet which is supposed to be representing this data. 
+// Delay helps to set the interval so that this does not run once for every render loop. 
+// Options are currently limited to scale options where the size of the integers in the data array may not exactly 
+// correspond at a 1:1 ratio for the visualSet
+function dataTranslation(dataArray, delay, visualSet, options) {
+	if (myInterval % delay !== 0) {
+		return;
 	}
+	if (options) {
+		var scaling = options.scale ? options.scale : 1;
+	}
+	dataArray.forEach(function compareVis(dataPoint, idx) {
+		// Note scale is done to the length of the array of visuals and does not take into account the actual size of
+		// each box. 
+		if (dataPoint * (scaling ? scaling : 1) > visualSet[idx].length) {
+			cubeAddition(visualSet, idx);
+		}
+	});
 }
+
+function cubeAddition(cubeArray, index) {
+	cubeArray[index].push(new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({color: cubeArray[index][0].material.color})));
+	cubeArray[index][cubeArray[index].length - 1].position.set(
+		cubeArray[index][cubeArray[index].length - 2].position.x,
+		cubeArray[index][cubeArray[index].length - 2].position.y,
+		cubeArray[index][cubeArray[index].length - 2].position.z
+	);
+	scene.add(cubeArray[index][cubeArray[index].length - 1]);
+}
+
+// This function is retired for a more generalized cube addition function. 
+// function additionCubes() {
+// 	if (myInterval % 240 === 0) {
+// 		meshedCubes[0].push(new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({color: meshedCubes[0][0].material.color})));
+// 		meshedCubes[0][meshedCubes[0].length - 1].position.set(
+// 			meshedCubes[0][meshedCubes[0].length - 2].position.x,
+// 			meshedCubes[0][meshedCubes[0].length - 2].position.y,
+// 			meshedCubes[0][meshedCubes[0].length - 2].position.z
+// 		);
+// 		scene.add(meshedCubes[0][meshedCubes[0].length - 1]);
+// 	}
+// }
 
 // This will run on every frame (at 60fps). Anything that moves
 // or changes will be run through the render loop. 
@@ -193,6 +237,8 @@ function cubeTranslation() {
 	});
 }
 
+// If 'top' cube position is not as high as it could be, move it up by one notch. 
+// TODO: Need to also include the ability to remove cubes as well. 
 function cubeResize(cubes) {
 	cubes.forEach(function adjustStack(cubeset) {
 		var topCube = cubeset[cubeset.length - 1];
