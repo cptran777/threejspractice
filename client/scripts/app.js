@@ -126,7 +126,7 @@ scene.add(pointLight);
 var myDataArray = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
 
 var incrementDummies = function() {
-	if (myInterval % 60 === 0) {
+	if (myInterval % 20 === 0) {
 		myDataArray.forEach(function(data, idx) {
 			myDataArray[idx] += Math.floor(Math.random() * 2);
 		});
@@ -159,7 +159,7 @@ function render() {
 	getFrequencies();
 	// cubeTranslation();
 	incrementDummies();
-	dataTranslation(myDataArray, 60, meshedCubes);
+	dataTranslation(myDataArray, 20, meshedCubes);
 	cubeResize(meshedCubes);
 	// additionCubes();
 	// var myCube = meshedCubes[0];
@@ -250,7 +250,17 @@ function cubeResize(cubes) {
 		var targetHeight = cubeset.length * 25 - 200;
 		var move = topCubePos.y + 25 < targetHeight ? 1 : 0;
 		topCube.position.set(topCubePos.x, topCubePos.y + move, topCubePos.z);
-
+		if (cubeset.length > 2) {
+			var secondCube = cubeset[cubeset.length - 2];
+			var secondCubePos = {
+				x: secondCube.position.x,
+				y: secondCube.position.y,
+				z: secondCube.position.z
+			};
+			var targetHeight = cubeset.length * 25 - 225;
+			var move = secondCubePos.y + 25 < targetHeight ? 1 : 0;
+			secondCube.position.set(secondCubePos.x, secondCubePos.y + move, secondCubePos.z);		
+		} 
 	});
 }
 
