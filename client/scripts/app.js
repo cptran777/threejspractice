@@ -136,9 +136,9 @@ var myDataArray = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
 var flipped = false;
 
 var incrementDummies = function() {
-	if (myInterval % 50 === 0) {
+	if (myInterval % 15 === 0) {
 		myDataArray.forEach(function(data, idx) {
-			myDataArray[idx] = Math.ceil(Math.random() * 10);
+			myDataArray[idx] = Math.ceil(Math.random() * 20);
 		});
 	}
 
@@ -182,8 +182,8 @@ function render() {
 	// cubeRotationFunc();
 	myInterval++;
 
-	// camera.position.x += ( mouseX - camera.position.x ) * .05;
-	// camera.position.y += ( - mouseY - camera.position.y ) * .05;
+	camera.position.x += ( mouseX - camera.position.x ) * .05;
+	camera.position.y += ( - mouseY - camera.position.y ) * .05;
 	camera.lookAt( scene.position );
 	getFrequencies();
 	// cubeTranslation();
