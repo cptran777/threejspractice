@@ -70,10 +70,13 @@ meshedCubes[0].push(new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({color:
 var addObjsToScene = function(objArray, options) {
 	var objPositions = options.objPositions || {x: 0, y: 0, z: 0};
 	var increment = options.increment || {x: 0, y: 0, z: 0};
+	// TODO: Make the function more generalized by allowing to pass in an option for randomizing the Z
+	// coordinate. 
+	var randomizedZ = Math.random() * 500 - 250;
 
 	objArray.forEach(function(obj, idx) {
 		scene.add(obj);
-		obj.position.set(objPositions.x, objPositions.y, objPositions.z);
+		obj.position.set(objPositions.x, objPositions.y, randomizedZ);
 		objPositions.x += increment.x;
 		objPositions.y += increment.y;
 		objPositions.z += increment.z;
@@ -84,6 +87,12 @@ var addSetsToScene = function(setsArray, options) {
 	var setsPositions = options.setsPositions || {x: 0, y: 0, z: 0};
 	var incrementSet = options.increment || {x: 0, y: 0, z: 0};
 	var incrementObj = options.incrementObj || {x: 0, y: 0, z: 0};
+	// Commented code will eventually allow the ability to set a random position for each set of objects. 
+	// var randomize = {
+	// 	x: options.randomizeX || false,
+	// 	y: options.randomizeY || false,
+	// 	z: options.randomizeZ || false
+	// };
 
 	setsArray.forEach(function(set) {
 		addObjsToScene(set, {objPositions: setsPositions, increment: incrementObj});
@@ -93,7 +102,7 @@ var addSetsToScene = function(setsArray, options) {
 	});
 }
 
-addSetsToScene(meshedCubes, {setsPositions: {x:-500, y:-200, z:0}, increment: {x: 60, y: 0, z: 0}, incrementObj: {x: 0, y: 0, z: 0}});
+addSetsToScene(meshedCubes, {setsPositions: {x:-500, y:-200, z:0}, increment: {x: 60, y: 0, z: 0}, incrementObj: {x: 0, y: 0, z: 0}, randomizeZ: true});
 
 /************************ MODIFY OBJECT SETS TO DATA *********************/
 
@@ -124,12 +133,23 @@ scene.add(pointLight);
 
 /************************ DUMMY DATA ************************/
 var myDataArray = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+var flipped = false;
 
 var incrementDummies = function() {
-	if (myInterval % 20 === 0) {
+	if (myInterval % 25 === 0 && flipped) {
 		myDataArray.forEach(function(data, idx) {
-			myDataArray[idx] += Math.floor(Math.random() * 2);
+			myDataArray[idx] -= 1;
 		});
+		if (myDataArray[0] <= 1) {
+			flipped = false;
+		}
+	} else if (myInterval % 25 === 0 && !flipped) {
+		myDataArray.forEach(function(data, idx) {
+			myDataArray[idx] += 1;
+		});
+		if (myDataArray[0] >= 10) {
+			flipped = true;
+		}
 	}
 }
 
@@ -160,7 +180,6 @@ function render() {
 	// cubeTranslation();
 	incrementDummies();
 	dataTranslation(myDataArray, 20, meshedCubes);
-	cubeResize(meshedCubes);
 	// additionCubes();
 	// var myCube = meshedCubes[0];
 	// console.log(myCube.position.x);
@@ -176,18 +195,22 @@ render();
 // Options are currently limited to scale options where the size of the integers in the data array may not exactly 
 // correspond at a 1:1 ratio for the visualSet
 function dataTranslation(dataArray, delay, visualSet, options) {
-	if (myInterval % delay !== 0) {
-		return;
-	}
+	// The commented code is to create ad elay on the dataTranslation. Currently, because of animation issues this function
+	// needs to be fully run on each render loop. To look further into how to do less than the full render loop to save computing power. 
+	// if (myInterval % delay !== 0) {
+	// 	return;
+	// }
 	if (options) {
 		var scaling = options.scale ? options.scale : 1;
 	}
 	dataArray.forEach(function compareVis(dataPoint, idx) {
 		// Note scale is done to the length of the array of visuals and does not take into account the actual size of
 		// each box. 
-		if (dataPoint * (scaling ? scaling : 1) > visualSet[idx].length) {
+		var targetPoint = dataPoint * (scaling ? scaling : 1);
+		if (targetPoint > visualSet[idx].length) {
 			cubeAddition(visualSet, idx);
 		}
+		cubeResize(visualSet[idx], targetPoint * 25 - 200);
 	});
 }
 
@@ -195,7 +218,7 @@ function cubeAddition(cubeArray, index) {
 	cubeArray[index].push(new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({color: cubeArray[index][0].material.color})));
 	cubeArray[index][cubeArray[index].length - 1].position.set(
 		cubeArray[index][cubeArray[index].length - 2].position.x,
-		cubeArray[index][cubeArray[index].length - 2].position.y,
+		cubeArray[index][cubeArray[index].length - 2].position.y + 1,
 		cubeArray[index][cubeArray[index].length - 2].position.z
 	);
 	scene.add(cubeArray[index][cubeArray[index].length - 1]);
@@ -239,29 +262,35 @@ function cubeTranslation() {
 
 // If 'top' cube position is not as high as it could be, move it up by one notch. 
 // TODO: Need to also include the ability to remove cubes as well. 
-function cubeResize(cubes) {
-	cubes.forEach(function adjustStack(cubeset) {
-		var topCube = cubeset[cubeset.length - 1];
-		var topCubePos = {
-			x: topCube.position.x,
-			y: topCube.position.y,
-			z: topCube.position.z
+function cubeResize(cubeset, targetHeight) {
+	var topCube = cubeset[cubeset.length - 1];
+	var topCubePos = {
+		x: topCube.position.x,
+		y: topCube.position.y,
+		z: topCube.position.z
+	};
+	var move;
+	if (cubeset.length > 1) {
+		move = topCubePos.y + 25 < targetHeight ? 1 : topCubePos.y + 25 > targetHeight ? -1 : 0;
+	} else {
+		move = topCubePos.y + 25 < targetHeight ? 1 : 0;
+	}
+	topCube.position.set(topCubePos.x, topCubePos.y + move, topCubePos.z);
+	if (cubeset.length > 2) {
+		var secondCube = cubeset[cubeset.length - 2];
+		var secondCubePos = {
+			x: secondCube.position.x,
+			y: secondCube.position.y,
+			z: secondCube.position.z
 		};
-		var targetHeight = cubeset.length * 25 - 200;
-		var move = topCubePos.y + 25 < targetHeight ? 1 : 0;
-		topCube.position.set(topCubePos.x, topCubePos.y + move, topCubePos.z);
-		if (cubeset.length > 2) {
-			var secondCube = cubeset[cubeset.length - 2];
-			var secondCubePos = {
-				x: secondCube.position.x,
-				y: secondCube.position.y,
-				z: secondCube.position.z
-			};
-			var targetHeight = cubeset.length * 25 - 225;
-			var move = secondCubePos.y + 25 < targetHeight ? 1 : 0;
-			secondCube.position.set(secondCubePos.x, secondCubePos.y + move, secondCubePos.z);		
-		} 
-	});
+		var targetHeight = (cubeset.length - 1) * 25 - 200;
+		var move = secondCubePos.y + 25 < targetHeight ? 1 : 0;
+		secondCube.position.set(secondCubePos.x, secondCubePos.y + move, secondCubePos.z);		
+		if (topCube.position.y <= secondCube.position.y) {
+			scene.remove(topCube);
+			cubeset.pop();
+		}
+	} 
 }
 
 
