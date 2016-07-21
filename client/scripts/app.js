@@ -136,21 +136,30 @@ var myDataArray = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
 var flipped = false;
 
 var incrementDummies = function() {
-	if (myInterval % 25 === 0 && flipped) {
+	if (myInterval % 50 === 0) {
 		myDataArray.forEach(function(data, idx) {
-			myDataArray[idx] -= 1;
+			myDataArray[idx] = Math.ceil(Math.random() * 10);
 		});
-		if (myDataArray[0] <= 1) {
-			flipped = false;
-		}
-	} else if (myInterval % 25 === 0 && !flipped) {
-		myDataArray.forEach(function(data, idx) {
-			myDataArray[idx] += 1;
-		});
-		if (myDataArray[0] >= 10) {
-			flipped = true;
-		}
 	}
+
+	// The below commented code increases and decreases dataArray at a steady
+	// rate. For the sake of further testing, will be testing non-consistent changes.
+	// However, this code is being saved for future use if necessary. 
+	// if (myInterval % 25 === 0 && flipped) {
+	// 	myDataArray.forEach(function(data, idx) {
+	// 		myDataArray[idx] -= 1;
+	// 	});
+	// 	if (myDataArray[0] <= 1) {
+	// 		flipped = false;
+	// 	}
+	// } else if (myInterval % 25 === 0 && !flipped) {
+	// 	myDataArray.forEach(function(data, idx) {
+	// 		myDataArray[idx] += 1;
+	// 	});
+	// 	if (myDataArray[0] >= 10) {
+	// 		flipped = true;
+	// 	}
+	// }
 }
 
 /******************* RENDER THE SCENE ***********************/
@@ -262,6 +271,37 @@ function cubeTranslation() {
 
 // If 'top' cube position is not as high as it could be, move it up by one notch. 
 // TODO: Need to also include the ability to remove cubes as well. 
+// function cubeResize(cubeset, targetHeight) {
+// 	var topCube = cubeset[cubeset.length - 1];
+// 	var topCubePos = {
+// 		x: topCube.position.x,
+// 		y: topCube.position.y,
+// 		z: topCube.position.z
+// 	};
+// 	var move;
+// 	if (cubeset.length > 1) {
+// 		move = topCubePos.y + 25 < targetHeight ? 1 : topCubePos.y + 25 > targetHeight ? -1 : 0;
+// 	} else {
+// 		move = topCubePos.y + 25 < targetHeight ? 1 : 0;
+// 	}
+// 	topCube.position.set(topCubePos.x, topCubePos.y + move, topCubePos.z);
+// 	if (cubeset.length > 2) {
+// 		var secondCube = cubeset[cubeset.length - 2];
+// 		var secondCubePos = {
+// 			x: secondCube.position.x,
+// 			y: secondCube.position.y,
+// 			z: secondCube.position.z
+// 		};
+// 		var targetHeight = (cubeset.length - 1) * 25 - 200;
+// 		var move = secondCubePos.y + 25 < targetHeight ? 1 : 0;
+// 		secondCube.position.set(secondCubePos.x, secondCubePos.y + move, secondCubePos.z);		
+// 		if (topCube.position.y <= secondCube.position.y) {
+// 			scene.remove(topCube);
+// 			cubeset.pop();
+// 		}
+// 	} 
+// }
+
 function cubeResize(cubeset, targetHeight) {
 	var topCube = cubeset[cubeset.length - 1];
 	var topCubePos = {
@@ -276,21 +316,20 @@ function cubeResize(cubeset, targetHeight) {
 		move = topCubePos.y + 25 < targetHeight ? 1 : 0;
 	}
 	topCube.position.set(topCubePos.x, topCubePos.y + move, topCubePos.z);
-	if (cubeset.length > 2) {
-		var secondCube = cubeset[cubeset.length - 2];
-		var secondCubePos = {
-			x: secondCube.position.x,
-			y: secondCube.position.y,
-			z: secondCube.position.z
+	for (var i = cubeset.length - 2; i >= 0; i--) {
+		var cubeTarget = (i + 1) * 25 - 200;
+		var cubePos = {
+			x: cubeset[i].position.x,
+			y: cubeset[i].position.y,
+			z: cubeset[i].position.z
 		};
-		var targetHeight = (cubeset.length - 1) * 25 - 200;
-		var move = secondCubePos.y + 25 < targetHeight ? 1 : 0;
-		secondCube.position.set(secondCubePos.x, secondCubePos.y + move, secondCubePos.z);		
-		if (topCube.position.y <= secondCube.position.y) {
-			scene.remove(topCube);
-			cubeset.pop();
-		}
-	} 
+		var move = cubePos.y + 25 < cubeTarget ? 1 : 0;
+		cubeset[i].position.set(cubePos.x, cubePos.y + move, cubePos.z);
+	}
+	if (cubeset.length > 2 && topCube.position.y <= cubeset[cubeset.length - 2].position.y) {
+		scene.remove(topCube);
+		cubeset.pop();
+	}
 }
 
 
