@@ -16,16 +16,6 @@ audioSrc.connect(audioCtx.destination);
 
 var frequencyData = new Uint8Array(200);
 
-// MAY NEED TO MOVE THIS CODE
-var interval = 0;
-var getFrequencies = function() {
-	analyzer.getByteFrequencyData(frequencyData);
-	var frequency = frequencyData;
-	if (interval++ > 30) {
-		interval = 0;
-	}
-}
-
 /************************  CREATE THE SCENE ****************************/
 var scene = new THREE.Scene();
 
@@ -61,7 +51,7 @@ var createObjects = function(numGroups, geo, materials) {
 	return results;
 };
 
-meshedCubes = createObjects(10, geometry, materialsList);
+meshedCubes = createObjects(100, geometry, materialsList);
 console.log(meshedCubes[0][0].material.color);
 meshedCubes[0].push(new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({color: meshedCubes[0][0].material.color})));
 
@@ -72,7 +62,7 @@ var addObjsToScene = function(objArray, options) {
 	var increment = options.increment || {x: 0, y: 0, z: 0};
 	// TODO: Make the function more generalized by allowing to pass in an option for randomizing the Z
 	// coordinate. 
-	var randomizedZ = Math.random() * 500 - 250;
+	var randomizedZ = Math.random() * 1000 - 250;
 
 	objArray.forEach(function(obj, idx) {
 		scene.add(obj);
@@ -132,7 +122,10 @@ pointLight.position.z = 1;
 scene.add(pointLight);
 
 /************************ DUMMY DATA ************************/
-var myDataArray = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+var myDataArray = [];
+for (var x = 0; x < 100; x++) {
+	myDataArray.push(1);
+}
 var flipped = false;
 
 var incrementDummies = function() {
@@ -169,6 +162,24 @@ function onDocumentMouseMove(event) {
 	mousePosX = event.clientX;
 	mousePosY = event.clientY;
 }
+
+// MAY NEED TO MOVE THIS CODE
+var getFrequencies = function() {
+	analyzer.getByteFrequencyData(frequencyData);
+	var frequency = frequencyData;
+	var result = [];
+	for (var x = 50; x < 150; x++) {
+		if (frequency[x] > 100) {
+			var toAdd = Math.floor(frequency[x] - 100) % 10;
+
+			result.push(toAdd > 10 ? toAdd * 3 : toAdd > 7 ? toAdd * 2 : toAdd);
+		} else {
+			result.push(1);
+		}
+	}
+	return result;
+}
+
 // Render loop:
 // Create a loop that causes the renderer to draw the scene 60 times
 // per second.
@@ -185,10 +196,10 @@ function render() {
 	camera.position.x += ( mouseX - camera.position.x ) * .05;
 	camera.position.y += ( - mouseY - camera.position.y ) * .05;
 	camera.lookAt( scene.position );
-	getFrequencies();
+	var frequencies = getFrequencies();
 	// cubeTranslation();
 	incrementDummies();
-	dataTranslation(myDataArray, 20, meshedCubes);
+	dataTranslation(frequencies, 20, meshedCubes);
 	// additionCubes();
 	// var myCube = meshedCubes[0];
 	// console.log(myCube.position.x);
@@ -311,9 +322,9 @@ function cubeResize(cubeset, targetHeight) {
 	};
 	var move;
 	if (cubeset.length > 1) {
-		move = topCubePos.y + 25 < targetHeight ? 1 : topCubePos.y + 25 > targetHeight ? -1 : 0;
+		move = topCubePos.y + 25 < targetHeight ? 5 : topCubePos.y + 25 > targetHeight ? -5 : 0;
 	} else {
-		move = topCubePos.y + 25 < targetHeight ? 1 : 0;
+		move = topCubePos.y + 25 < targetHeight ? 5 : 0;
 	}
 	topCube.position.set(topCubePos.x, topCubePos.y + move, topCubePos.z);
 	for (var i = cubeset.length - 2; i >= 0; i--) {
@@ -323,7 +334,7 @@ function cubeResize(cubeset, targetHeight) {
 			y: cubeset[i].position.y,
 			z: cubeset[i].position.z
 		};
-		var move = cubePos.y + 25 < cubeTarget ? 1 : 0;
+		var move = cubePos.y + 25 < cubeTarget ? 5 : 0;
 		cubeset[i].position.set(cubePos.x, cubePos.y + move, cubePos.z);
 	}
 	if (cubeset.length > 2 && topCube.position.y <= cubeset[cubeset.length - 2].position.y) {
