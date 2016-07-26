@@ -96,7 +96,7 @@ var addSetsToScene = function(setsArray, options) {
 	});
 }
 
-addSetsToScene(meshedCubes, {setsPositions: {x:-500, y:-200, z:0}, increment: {x: 60, y: 0, z: 0}, incrementObj: {x: 0, y: 0, z: 0}, randomizeZ: true});
+addSetsToScene(meshedCubes, {setsPositions: {x:-500, y:-200, z:0}, increment: {x: 30, y: 0, z: 0}, incrementObj: {x: 0, y: 0, z: 0}, randomizeZ: true});
 
 /************************ MODIFY OBJECT SETS TO DATA *********************/
 
