@@ -1,4 +1,8 @@
-document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+/************************* MOUSE EVENTS ******************************/
+
+document.addEventListener('mousemove', onDocumentMouseMove, false);
+document.addEventListener('mousedown', onDocumentMouseDown, false);
+document.addEventListener('mouseup', onDocumentMouseUp, false);
 
 var mouseX = 0;
 var mouseY = 0;
@@ -156,11 +160,26 @@ var incrementDummies = function() {
 }
 
 /******************* RENDER THE SCENE ***********************/
+
+// Camera movement
+// Boolean that stores state so that camera only moves on mouse drag. 
+var mouseDown = false;
+
+function onDocumentMouseUp(event) {
+	mouseDown = false;
+}
+
+function onDocumentMouseDown(event) {
+	mouseDown = true;
+}
+
 function onDocumentMouseMove(event) {
-	mouseX = (event.clientX - window.innerWidth / 2);
-	mouseY = (event.clientY - window.innerHeight / 2);
-	mousePosX = event.clientX;
-	mousePosY = event.clientY;
+	if(mouseDown) {
+		mouseX = (event.clientX - window.innerWidth / 2);
+		mouseY = (event.clientY - window.innerHeight / 2);
+		mousePosX = event.clientX;
+		mousePosY = event.clientY;
+	}
 }
 
 // MAY NEED TO MOVE THIS CODE
