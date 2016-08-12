@@ -259,6 +259,7 @@ function update(dt) {
 // Pauses when the user navigates to another browser tab, so doesn't waste
 // processing power. 
 var myInterval = 0;
+document.getElementById('audioElement').play();
 function render() {
 	requestAnimationFrame(render);
 	// Addition of function that rotates the cube. 
@@ -281,7 +282,6 @@ function render() {
 }
 render();
 
-document.getElementById('audioElement').play();
 
 /******************* ANIMATE THE CUBE ***********************/
 
