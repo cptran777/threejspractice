@@ -261,8 +261,6 @@ function update(dt) {
 // Note: requestAnimationFrame has some advantages over simple setInterval: 
 // Pauses when the user navigates to another browser tab, so doesn't waste
 // processing power. 
-console.log(effect);
-console.log(effect.render(scene, camera));
 var myInterval = 0;
 function render() {
 	requestAnimationFrame(render);
