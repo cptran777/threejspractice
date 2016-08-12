@@ -281,7 +281,7 @@ function render() {
 	// var myCube = meshedCubes[0];
 	// console.log(myCube.position.x);
 	// myCube.position.set(myCube.position.x + 0.02, myCube.position.y + 0.01, 0);
-	effect.render(scene, camera);
+	renderer.render(scene, camera);
 }
 render();
 
