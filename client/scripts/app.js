@@ -241,12 +241,12 @@ function resize() {
   var height = container.offsetHeight;
   camera.aspect = width / height;
   camera.updateProjectionMatrix();
-  renderer.setSize(width, height);
-  effect.setSize(width, height);
+  // renderer.setSize(width, height);
+  // effect.setSize(width, height);
 }
 
 function update(dt) {
-  // resize();
+  resize();
   camera.updateProjectionMatrix();
   controls.update(dt);
 }
