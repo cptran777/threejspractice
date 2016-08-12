@@ -71,6 +71,7 @@ function fullscreen() {
    } else if (container.webkitRequestFullscreen) {
      container.webkitRequestFullscreen();
    }
+   resize();
  }
 
 
@@ -246,7 +247,7 @@ function resize() {
 }
 
 function update(dt) {
-  resize();
+  // resize();
   camera.updateProjectionMatrix();
   controls.update(dt);
 }
