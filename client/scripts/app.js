@@ -23,14 +23,17 @@ var frequencyData = new Uint8Array(200);
 /************************  CREATE THE SCENE ****************************/
 var scene = new THREE.Scene();
 
-var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.z = 500;
+var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1500);
+camera.position.set(0, 15, 0);
+
+scene.add(camera);
 
 var renderer = new THREE.WebGLRenderer();
 var element = renderer.domElement;
-renderer.setSize(window.innerWidth, window.innerHeight);
+// renderer.setSize(window.innerWidth, window.innerHeight);
+var container = document.getElementById('musicboard');
 
-document.body.appendChild(element); 
+container.appendChild(element); 
 
 
 var effect = new THREE.StereoEffect(renderer);
@@ -59,14 +62,14 @@ function setOrientationControls(e) {
 window.addEventListener('deviceorientation', setOrientationControls, true);
 
 function fullscreen() {
-   if (document.body.requestFullscreen) {
-     document.body.requestFullscreen();
-   } else if (document.body.msRequestFullscreen) {
-     document.body.msRequestFullscreen();
-   } else if (document.body.mozRequestFullScreen) {
-     document.body.mozRequestFullScreen();
-   } else if (document.body.webkitRequestFullscreen) {
-     document.body.webkitRequestFullscreen();
+   if (container.requestFullscreen) {
+     container.requestFullscreen();
+   } else if (container.msRequestFullscreen) {
+     container.msRequestFullscreen();
+   } else if (container.mozRequestFullScreen) {
+     container.mozRequestFullScreen();
+   } else if (container.webkitRequestFullscreen) {
+     container.webkitRequestFullscreen();
    }
  }
 
@@ -173,12 +176,6 @@ for (var x = 0; x < 100; x++) {
 }
 var flipped = false;
 
-var incrementDummies = function() {
-	if (myInterval % 15 === 0) {
-		myDataArray.forEach(function(data, idx) {
-			myDataArray[idx] = Math.ceil(Math.random() * 20);
-		});
-	}
 
 	// The below commented code increases and decreases dataArray at a steady
 	// rate. For the sake of further testing, will be testing non-consistent changes.
@@ -198,7 +195,6 @@ var incrementDummies = function() {
 	// 		flipped = true;
 	// 	}
 	// }
-}
 
 /******************* RENDER THE SCENE ***********************/
 
@@ -241,8 +237,8 @@ var getFrequencies = function() {
 }
 
 function resize() {
-  var width = document.body.offsetWidth;
-  var height = document.body.offsetHeight;
+  var width = container.offsetWidth;
+  var height = container.offsetHeight;
   camera.aspect = width / height;
   camera.updateProjectionMatrix();
   renderer.setSize(width, height);
@@ -273,12 +269,13 @@ function render() {
 	// camera.lookAt( scene.position );
 	var frequencies = getFrequencies();
 	// cubeTranslation();
-	incrementDummies();
+	// incrementDummies();
 	dataTranslation(frequencies, 20, meshedCubes);
 	// additionCubes();
 	// var myCube = meshedCubes[0];
 	// console.log(myCube.position.x);
 	// myCube.position.set(myCube.position.x + 0.02, myCube.position.y + 0.01, 0);
+	update();
 	renderer.render(scene, camera);
 }
 render();
