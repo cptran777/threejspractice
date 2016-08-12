@@ -27,9 +27,50 @@ var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHei
 camera.position.z = 500;
 
 var renderer = new THREE.WebGLRenderer();
+var element = renderer.domElement;
 renderer.setSize(window.innerWidth, window.innerHeight);
 
-document.body.appendChild(renderer.domElement); 
+document.body.appendChild(element); 
+
+
+var effect = new THREE.StereoEffect(renderer);
+
+/*************************  CAMERA CONTROLS ****************************/
+
+controls = new THREE.OrbitControls(camera, element);
+controls.target.set(
+  camera.position.x + 0.15,
+  camera.position.y,
+  camera.position.z
+);
+controls.noPan = true;
+controls.noZoom = true;
+
+function setOrientationControls(e) {
+  if (!e.alpha) {
+    return;
+  }
+  controls = new THREE.DeviceOrientationControls(camera, true);
+  controls.connect();
+  controls.update();
+  element.addEventListener('click', fullscreen, false);
+  window.removeEventListener('deviceorientation', setOrientationControls, true);
+}
+window.addEventListener('deviceorientation', setOrientationControls, true);
+
+function fullscreen() {
+   if (document.body.requestFullscreen) {
+     document.body.requestFullscreen();
+   } else if (document.body.msRequestFullscreen) {
+     document.body.msRequestFullscreen();
+   } else if (document.body.mozRequestFullScreen) {
+     document.body.mozRequestFullScreen();
+   } else if (document.body.webkitRequestFullscreen) {
+     document.body.webkitRequestFullscreen();
+   }
+ }
+
+
 
 /*************************** CREATE OBJECTS ****************************/
 
@@ -199,12 +240,29 @@ var getFrequencies = function() {
 	return result;
 }
 
+function resize() {
+  var width = document.body.offsetWidth;
+  var height = document.body.offsetHeight;
+  camera.aspect = width / height;
+  camera.updateProjectionMatrix();
+  renderer.setSize(width, height);
+  effect.setSize(width, height);
+}
+
+function update(dt) {
+  resize();
+  camera.updateProjectionMatrix();
+  controls.update(dt);
+}
+
 // Render loop:
 // Create a loop that causes the renderer to draw the scene 60 times
 // per second.
 // Note: requestAnimationFrame has some advantages over simple setInterval: 
 // Pauses when the user navigates to another browser tab, so doesn't waste
 // processing power. 
+console.log(effect);
+console.log(effect.render(scene, camera));
 var myInterval = 0;
 function render() {
 	requestAnimationFrame(render);
@@ -212,9 +270,9 @@ function render() {
 	// cubeRotationFunc();
 	myInterval++;
 
-	camera.position.x += ( mouseX - camera.position.x ) * .05;
-	camera.position.y += ( - mouseY - camera.position.y ) * .05;
-	camera.lookAt( scene.position );
+	// camera.position.x += ( mouseX - camera.position.x ) * .05;
+	// camera.position.y += ( - mouseY - camera.position.y ) * .05;
+	// camera.lookAt( scene.position );
 	var frequencies = getFrequencies();
 	// cubeTranslation();
 	incrementDummies();
@@ -223,9 +281,11 @@ function render() {
 	// var myCube = meshedCubes[0];
 	// console.log(myCube.position.x);
 	// myCube.position.set(myCube.position.x + 0.02, myCube.position.y + 0.01, 0);
-	renderer.render(scene, camera);
+	effect.render(scene, camera);
 }
 render();
+
+document.getElementById('audioElement').play();
 
 /******************* ANIMATE THE CUBE ***********************/
 
